@@ -1,4 +1,4 @@
-import { glossary, safetySources, starterRecipes } from "./data.js?v=public-book-1";
+import { glossary, safetySources, starterRecipes } from "./data.js?v=recipe-photos-1";
 
 const importedKey = "chatCookbook.importedRecipes";
 const completedKey = "chatCookbook.completed";
@@ -224,7 +224,7 @@ function renderRecipeView(recipe) {
   return `
     <article class="recipe-detail">
       <div class="recipe-hero">
-        <img src="${escapeHtml(recipe.image)}" alt="${escapeHtml(recipe.title)}" />
+        <img src="${escapeHtml(recipe.image)}" alt="${escapeHtml(recipe.title)}" decoding="async" />
         <div class="recipe-hero-copy">
           <span class="chapter-label">${escapeHtml(recipe.chapter)} &middot; ${escapeHtml(recipe.origin)}</span>
           <h1>${escapeHtml(recipe.title)}</h1>
@@ -234,6 +234,7 @@ function renderRecipeView(recipe) {
             <span><strong>Active</strong>${escapeHtml(recipe.activeTime)}</span>
             <span><strong>Total</strong>${escapeHtml(recipe.totalTime)}</span>
           </div>
+          ${renderPhotoCredit(recipe)}
         </div>
       </div>
 
@@ -291,6 +292,23 @@ function renderRecipeView(recipe) {
         </div>
       </section>
     </article>
+  `;
+}
+
+function renderPhotoCredit(recipe) {
+  const credit = recipe.imageCredit;
+  if (!credit) return "";
+
+  const photoUrl = credit.landingUrl || credit.openverseUrl || credit.image;
+  const license = credit.licenseUrl
+    ? `<a href="${escapeHtml(credit.licenseUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(credit.license)}</a>`
+    : escapeHtml(credit.license || "Open license");
+
+  return `
+    <p class="photo-credit">
+      Photo: <a href="${escapeHtml(photoUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(credit.title || recipe.title)}</a>
+      by ${escapeHtml(credit.creator || "Unknown creator")} &middot; ${license}
+    </p>
   `;
 }
 

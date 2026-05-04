@@ -1,3 +1,5 @@
+import { recipePhotoMap } from "./photoMap.js?v=recipe-photos-1";
+
 export const safetySources = [
   {
     title: "USDA FSIS Safe Minimum Internal Temperature Chart",
@@ -1626,7 +1628,12 @@ function recipeArtwork(recipe) {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
-export const starterRecipes = combinedRecipeLibrary.map((recipe) => ({
-  ...recipe,
-  image: recipeArtwork(recipe),
-}));
+export const starterRecipes = combinedRecipeLibrary.map((recipe) => {
+  const photo = recipePhotoMap[recipe.id];
+
+  return {
+    ...recipe,
+    image: photo?.image || recipe.image,
+    imageCredit: photo || null,
+  };
+});

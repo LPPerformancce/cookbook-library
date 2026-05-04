@@ -1,4 +1,5 @@
 server.out.log
 server.err.log
+scripts/photo-cache.json
 .DS_Store
 Thumbs.db
