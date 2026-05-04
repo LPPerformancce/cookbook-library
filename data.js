@@ -1329,8 +1329,304 @@ const dessertRecipeLibrary = [
   ...buildPieDesserts(),
 ];
 
-export const starterRecipes = [
+const combinedRecipeLibrary = [
   ...curatedRecipes,
   ...generatedRecipeLibrary,
   ...dessertRecipeLibrary,
 ];
+
+const artStyles = {
+  cake: {
+    label: "Cake",
+    bg: "#fff2e7",
+    wash: "#f7c6a3",
+    accent: "#9d3f35",
+    deep: "#5b2f31",
+    kind: "cake",
+  },
+  pastry: {
+    label: "Pastry",
+    bg: "#fff5df",
+    wash: "#e5b96f",
+    accent: "#b5752a",
+    deep: "#694119",
+    kind: "pastry",
+  },
+  bread: {
+    label: "Bread",
+    bg: "#fff6df",
+    wash: "#d9a05d",
+    accent: "#9a5f2f",
+    deep: "#60401f",
+    kind: "bread",
+  },
+  biscuits: {
+    label: "Biscuits",
+    bg: "#fbf0df",
+    wash: "#d7ad74",
+    accent: "#8d5f37",
+    deep: "#533822",
+    kind: "biscuits",
+  },
+  pies: {
+    label: "Pies",
+    bg: "#fff0e6",
+    wash: "#d88a72",
+    accent: "#a64a43",
+    deep: "#613034",
+    kind: "pie",
+  },
+  soup: {
+    label: "Soup",
+    bg: "#fff5e8",
+    wash: "#e8a04f",
+    accent: "#c4513d",
+    deep: "#6b3227",
+    kind: "bowl",
+  },
+  pasta: {
+    label: "Pasta",
+    bg: "#fff8dc",
+    wash: "#e8c45d",
+    accent: "#bb7e28",
+    deep: "#5d4120",
+    kind: "noodles",
+  },
+  salad: {
+    label: "Fresh",
+    bg: "#f3faed",
+    wash: "#a9cf89",
+    accent: "#637b46",
+    deep: "#304125",
+    kind: "salad",
+  },
+  roast: {
+    label: "Traybake",
+    bg: "#fff0e6",
+    wash: "#df896d",
+    accent: "#a9543a",
+    deep: "#5d3025",
+    kind: "tray",
+  },
+  bowl: {
+    label: "Bowl",
+    bg: "#eef8f4",
+    wash: "#8cc9b6",
+    accent: "#23536a",
+    deep: "#1f3d4d",
+    kind: "bowl",
+  },
+  sweet: {
+    label: "Sweet",
+    bg: "#fff0f5",
+    wash: "#d994ad",
+    accent: "#9d4b68",
+    deep: "#5c2d42",
+    kind: "cake",
+  },
+  plate: {
+    label: "Recipe",
+    bg: "#fffaf0",
+    wash: "#d7e7df",
+    accent: "#23536a",
+    deep: "#2b2624",
+    kind: "plate",
+  },
+};
+
+function getArtStyle(recipe) {
+  const key = `${recipe.chapter} ${(recipe.tags || []).join(" ")} ${recipe.title}`.toLowerCase();
+  if (key.includes("cake")) return artStyles.cake;
+  if (key.includes("pastry") || key.includes("danish") || key.includes("turnover")) return artStyles.pastry;
+  if (key.includes("bread") || key.includes("brioche") || key.includes("loaf")) return artStyles.bread;
+  if (key.includes("biscuit") || key.includes("cookie") || key.includes("shortbread")) return artStyles.biscuits;
+  if (key.includes("pie") || key.includes("frangipane")) return artStyles.pies;
+  if (key.includes("soup") || key.includes("stew")) return artStyles.soup;
+  if (key.includes("pasta") || key.includes("noodle") || key.includes("orzo") || key.includes("gnocchi")) return artStyles.pasta;
+  if (key.includes("salad") || key.includes("no-cook")) return artStyles.salad;
+  if (key.includes("tray") || key.includes("roast") || key.includes("kofta")) return artStyles.roast;
+  if (key.includes("bowl") || key.includes("grain") || key.includes("rice")) return artStyles.bowl;
+  if (key.includes("sweet") || key.includes("dessert")) return artStyles.sweet;
+  return artStyles.plate;
+}
+
+function escapeSvg(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
+function titleLines(title) {
+  const words = String(title).split(" ");
+  const lines = [];
+  let line = "";
+  for (const word of words) {
+    const next = line ? `${line} ${word}` : word;
+    if (next.length > 22 && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = next;
+    }
+  }
+  if (line) lines.push(line);
+  return lines.slice(0, 3);
+}
+
+function ingredientLabels(recipe) {
+  const labels = (recipe.indexIngredients || recipe.tags || [])
+    .map((item) => String(item).replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .filter((item) => item.length <= 24)
+    .slice(0, 3);
+  return labels.length ? labels : [recipe.chapter];
+}
+
+function foodIcon(kind, accent, wash, deep) {
+  if (kind === "cake") {
+    return `
+      <rect x="710" y="392" width="300" height="110" rx="20" fill="${deep}" opacity="0.18"/>
+      <rect x="690" y="345" width="340" height="86" rx="18" fill="${wash}"/>
+      <rect x="720" y="295" width="280" height="74" rx="16" fill="#fff7ed"/>
+      <path d="M722 352 C770 386 826 320 876 352 C926 384 970 330 1000 352" fill="none" stroke="${accent}" stroke-width="18" stroke-linecap="round"/>
+      <circle cx="760" cy="283" r="18" fill="${accent}"/>
+      <circle cx="858" cy="269" r="18" fill="${accent}"/>
+      <circle cx="955" cy="283" r="18" fill="${accent}"/>
+    `;
+  }
+  if (kind === "pastry") {
+    return `
+      <path d="M700 392 L848 260 L1030 392 L882 525 Z" fill="${wash}"/>
+      <path d="M742 392 L850 300 L988 392 L880 482 Z" fill="#fff7e6"/>
+      <path d="M760 390 C828 350 900 350 970 390" fill="none" stroke="${accent}" stroke-width="18" stroke-linecap="round"/>
+      <path d="M748 444 C826 410 900 410 976 444" fill="none" stroke="${deep}" stroke-width="10" opacity="0.35"/>
+    `;
+  }
+  if (kind === "bread") {
+    return `
+      <ellipse cx="862" cy="430" rx="218" ry="108" fill="${deep}" opacity="0.14"/>
+      <path d="M678 406 C702 285 830 254 910 284 C1016 324 1054 448 996 505 C932 568 724 536 686 464 C676 446 673 426 678 406 Z" fill="${wash}"/>
+      <path d="M770 326 C746 382 748 430 776 476" fill="none" stroke="#fff6dd" stroke-width="22" stroke-linecap="round"/>
+      <path d="M868 300 C832 372 834 432 874 500" fill="none" stroke="#fff6dd" stroke-width="22" stroke-linecap="round"/>
+      <path d="M954 338 C928 388 930 434 960 480" fill="none" stroke="#fff6dd" stroke-width="20" stroke-linecap="round"/>
+    `;
+  }
+  if (kind === "biscuits") {
+    return `
+      <circle cx="782" cy="405" r="92" fill="${wash}"/>
+      <circle cx="930" cy="405" r="92" fill="#f4d6a6"/>
+      <circle cx="828" cy="515" r="86" fill="#e6b97b"/>
+      <circle cx="750" cy="388" r="10" fill="${deep}"/>
+      <circle cx="805" cy="430" r="9" fill="${deep}"/>
+      <circle cx="920" cy="370" r="9" fill="${deep}"/>
+      <circle cx="956" cy="425" r="10" fill="${deep}"/>
+      <circle cx="810" cy="502" r="9" fill="${deep}"/>
+      <circle cx="856" cy="546" r="8" fill="${deep}"/>
+    `;
+  }
+  if (kind === "pie") {
+    return `
+      <ellipse cx="864" cy="460" rx="222" ry="92" fill="${deep}" opacity="0.14"/>
+      <path d="M670 430 C700 292 1015 292 1058 430 C1010 520 726 524 670 430 Z" fill="${wash}"/>
+      <path d="M724 368 L1010 468 M784 326 L1036 430 M678 424 L948 314" stroke="#fff0d3" stroke-width="18" stroke-linecap="round"/>
+      <path d="M702 432 C772 458 952 462 1030 432" fill="none" stroke="${accent}" stroke-width="18" stroke-linecap="round"/>
+    `;
+  }
+  if (kind === "noodles") {
+    return `
+      <path d="M684 392 C720 548 1000 548 1038 392 Z" fill="${deep}" opacity="0.18"/>
+      <ellipse cx="861" cy="392" rx="190" ry="74" fill="#fff8e5"/>
+      <path d="M742 386 C790 348 834 430 882 386 C924 348 966 430 1008 386" fill="none" stroke="${wash}" stroke-width="16" stroke-linecap="round"/>
+      <path d="M754 426 C816 390 886 468 958 420" fill="none" stroke="${accent}" stroke-width="12" stroke-linecap="round"/>
+      <circle cx="800" cy="376" r="14" fill="${accent}"/>
+      <circle cx="928" cy="404" r="14" fill="${accent}"/>
+    `;
+  }
+  if (kind === "salad") {
+    return `
+      <ellipse cx="862" cy="448" rx="214" ry="92" fill="${deep}" opacity="0.14"/>
+      <ellipse cx="862" cy="400" rx="202" ry="94" fill="#fffaf0"/>
+      <path d="M748 410 C748 328 836 322 846 396 C808 448 766 456 748 410 Z" fill="${wash}"/>
+      <path d="M850 404 C842 320 944 316 956 394 C916 452 872 458 850 404 Z" fill="${accent}"/>
+      <circle cx="786" cy="392" r="18" fill="#d95148"/>
+      <circle cx="932" cy="384" r="18" fill="#f0c969"/>
+      <circle cx="884" cy="426" r="14" fill="#d95148"/>
+    `;
+  }
+  if (kind === "tray") {
+    return `
+      <rect x="680" y="312" width="360" height="236" rx="34" fill="${deep}" opacity="0.18"/>
+      <rect x="704" y="284" width="324" height="236" rx="30" fill="#fff8ec" stroke="${accent}" stroke-width="14"/>
+      <circle cx="780" cy="366" r="34" fill="${wash}"/>
+      <circle cx="892" cy="360" r="38" fill="${accent}"/>
+      <circle cx="816" cy="454" r="34" fill="#6f8a4d"/>
+      <circle cx="946" cy="450" r="36" fill="${wash}"/>
+    `;
+  }
+  if (kind === "bowl") {
+    return `
+      <path d="M684 390 C722 550 1000 550 1038 390 Z" fill="${deep}" opacity="0.16"/>
+      <ellipse cx="862" cy="392" rx="196" ry="78" fill="#fffaf0"/>
+      <ellipse cx="862" cy="392" rx="150" ry="48" fill="${wash}"/>
+      <circle cx="792" cy="376" r="22" fill="${accent}"/>
+      <circle cx="902" cy="390" r="20" fill="#f0c969"/>
+      <path d="M760 426 C820 394 900 460 964 416" fill="none" stroke="${deep}" stroke-width="12" stroke-linecap="round" opacity="0.45"/>
+    `;
+  }
+  return `
+    <ellipse cx="862" cy="440" rx="212" ry="104" fill="${deep}" opacity="0.14"/>
+    <circle cx="862" cy="390" r="132" fill="#fffaf0"/>
+    <circle cx="862" cy="390" r="84" fill="${wash}"/>
+    <path d="M790 410 C836 350 902 350 946 410" fill="none" stroke="${accent}" stroke-width="18" stroke-linecap="round"/>
+  `;
+}
+
+function recipeArtwork(recipe) {
+  const style = getArtStyle(recipe);
+  const lines = titleLines(recipe.title);
+  const labels = ingredientLabels(recipe);
+  const titleMarkup = lines
+    .map((line, index) => `<tspan x="92" dy="${index === 0 ? 0 : 70}">${escapeSvg(line)}</tspan>`)
+    .join("");
+  const labelMarkup = labels
+    .map((label, index) => {
+      const y = 660 + index * 48;
+      return `
+        <rect x="92" y="${y - 28}" width="${Math.min(330, 96 + label.length * 10)}" height="36" rx="18" fill="#fffaf0" opacity="0.76"/>
+        <text x="112" y="${y - 4}" fill="${style.deep}" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">${escapeSvg(label)}</text>
+      `;
+    })
+    .join("");
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="${style.bg}"/>
+          <stop offset="1" stop-color="#fffaf0"/>
+        </linearGradient>
+        <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+          <path d="M44 0H0V44" fill="none" stroke="${style.deep}" stroke-opacity="0.05" stroke-width="2"/>
+        </pattern>
+      </defs>
+      <rect width="1200" height="900" fill="url(#bg)"/>
+      <rect width="1200" height="900" fill="url(#grid)"/>
+      <circle cx="992" cy="146" r="238" fill="${style.wash}" opacity="0.24"/>
+      <circle cx="930" cy="706" r="148" fill="${style.accent}" opacity="0.12"/>
+      <rect x="58" y="54" width="1084" height="792" rx="40" fill="#fffdf8" opacity="0.58" stroke="${style.deep}" stroke-opacity="0.14"/>
+      <text x="92" y="146" fill="${style.accent}" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="900" letter-spacing="3">${escapeSvg(style.label.toUpperCase())}</text>
+      <line x1="92" y1="178" x2="470" y2="178" stroke="${style.accent}" stroke-width="6" stroke-linecap="round"/>
+      <text x="92" y="292" fill="${style.deep}" font-family="Georgia, 'Times New Roman', serif" font-size="66" font-weight="700">${titleMarkup}</text>
+      ${labelMarkup}
+      ${foodIcon(style.kind, style.accent, style.wash, style.deep)}
+    </svg>
+  `;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+export const starterRecipes = combinedRecipeLibrary.map((recipe) => ({
+  ...recipe,
+  image: recipeArtwork(recipe),
+}));

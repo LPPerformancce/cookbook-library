@@ -1,4 +1,4 @@
-import { glossary, safetySources, starterRecipes } from "./data.js?v=combined-book-1";
+import { glossary, safetySources, starterRecipes } from "./data.js?v=public-book-1";
 
 const importedKey = "chatCookbook.importedRecipes";
 const completedKey = "chatCookbook.completed";
